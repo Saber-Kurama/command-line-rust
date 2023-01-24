@@ -4,21 +4,20 @@ use clap::Parser;
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
-    #[arg(short, long)]
-    text: String,
+    // #[arg(short, long)]
+    // text: String,
     /// Name of the person to greet
-    #[arg(short, long, default_value_t = String::from("saber") )]
-    name: String,
-
-    /// Number of times to greet
-    #[arg(short, long, default_value_t = 1)]
-    count: u8,
+    #[arg(num_args = 1..)]
+    text: Vec<String>,
+    #[arg(short = 'n', long = "noline", default_value_t = false)]
+    omit_newline: bool,
 }
 
 fn main() {
     let args = Args::parse();
-
-    for _ in 0..args.count {
-        println!("Hello {}!", args.name)
-    }
+    print!(
+        "{}{}",
+        args.text.join(" "),
+        if args.omit_newline { "" } else { "\n" }
+    );
 }
