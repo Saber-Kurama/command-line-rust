@@ -1,8 +1,9 @@
-use std::fmt::Error;
-
 use clap::{App, Arg};
+use std::error::Error;
+use std::fs::File;
+use std::io::{self, BufRead, BufReader};
 
-type MyResult<T> = Result<T, Box<Error>>;
+type MyResult<T> = Result<T, Box<dyn Error>>;
 
 #[derive(Debug)]
 pub struct Config {
@@ -18,7 +19,7 @@ pub fn get_args() -> MyResult<Config> {
         .about("catr demo")
         .arg(
             Arg::with_name("files")
-                .value_name("FILE")
+                .value_name("XXXX")
                 .default_value("-")
                 .min_values(1),
         )
@@ -45,7 +46,22 @@ pub fn get_args() -> MyResult<Config> {
         number_nonblank_lines: matches.is_present("number_nonblank"),
     })
 }
+
+fn open(filename: &str) -> MyResult<Box<dyn BufRead>> {
+    match filename {
+        "-" => Ok(Box::new(BufReader::new(io::stdin()))),
+        _ => Ok(Box::new(BufReader::new(File::open(filename)?))),
+    }
+}
+
 pub fn run(config: Config) -> MyResult<()> {
     // dbg!(config);
+    for filename in config.files {
+        println!("filename: {}", filename);
+        match open(&filename) {
+            Err(err) => eprintln!("faild filename {} : {}", filename, err),
+            Ok(_) => println!("open {}", filename),
+        }
+    }
     Ok(())
 }
