@@ -60,7 +60,11 @@ pub fn run(config: Config) -> MyResult<()> {
         println!("filename: {}", filename);
         match open(&filename) {
             Err(err) => eprintln!("faild filename {} : {}", filename, err),
-            Ok(_) => println!("open {}", filename),
+            Ok(mut file) => {
+                let mut fileStr = String::new();
+                file.read_to_string(&mut fileStr)?;
+                println!("open {}, {}", filename, fileStr);
+            }
         }
     }
     Ok(())
