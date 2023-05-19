@@ -1,4 +1,10 @@
-use std::{error::Error, format};
+use std::{
+    error::Error,
+    format,
+    fs::File,
+    io::{self, BufRead, BufReader},
+    println,
+};
 
 use clap::{App, Arg};
 
@@ -58,8 +64,23 @@ pub fn get_args() -> MyResult<Config> {
     })
 }
 
-pub fn run(options: Config) -> MyResult<()> {
-    println!("{:#?}", options);
+pub fn run(config: Config) -> MyResult<()> {
+    for filename in config.files {
+        match open(&filename) {
+            Err(err) => eprintln!("{} : {}", filename, err),
+            Ok(mut file) => {
+                let mut line = String::new();
+                for _ in 0..config.lines {
+                    let bytes = file.read_line(&mut line)?;
+                    if bytes == 0 {
+                        break;
+                    }
+                    println!("{}", line);
+                    line.clear();
+                }
+            }
+        }
+    }
     Ok(())
 }
 
@@ -99,4 +120,11 @@ fn test_parse_positive_int() {
     let res = parse_positive_int("0");
     assert!(res.is_err());
     assert_eq!(res.unwrap_err().to_string(), "0".to_string());
+}
+
+fn open(filename: &str) -> MyResult<Box<dyn BufRead>> {
+    match filename {
+        "_" => Ok(Box::new(BufReader::new(io::stdin()))),
+        _ => Ok(Box::new(BufReader::new(File::open(filename)?))),
+    }
 }
